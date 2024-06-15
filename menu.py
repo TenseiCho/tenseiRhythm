@@ -5,8 +5,8 @@ import sys
 pygame.init()
 
 # Set up the display
-screen_width = 800
-screen_height = 600
+screen_width = 1600
+screen_height = 800
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Main Menu")
 
@@ -28,21 +28,23 @@ def main_menu():
     while True:
         screen.fill(BLACK)
         draw_text("Main Menu", font, WHITE, screen, screen_width/2, screen_height/4)
-        draw_text("Press 'P' to Play", font, WHITE, screen, screen_width/2, screen_height/2)
-        draw_text("Press 'Q' to Quit", font, WHITE, screen, screen_width/2, screen_height*3/4)
+        draw_text("Start", font, WHITE, screen, screen_width/2, screen_height/2)
+        draw_text("Quit", font, WHITE, screen, screen_width/2, screen_height*3/4)
         pygame.display.update()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p:
-                    # Start the game
-                    game()
-                if event.key == pygame.K_q:
-                    pygame.quit()
-                    sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Left mouse button
+                    mouse_x, mouse_y = event.pos
+                    if screen_width/2 - 100 <= mouse_x <= screen_width/2 + 100 and screen_height/2 - 20 <= mouse_y <= screen_height/2 + 20:
+                        # Start the game
+                        game()
+                    elif screen_width/2 - 100 <= mouse_x <= screen_width/2 + 100 and screen_height*3/4 - 20 <= mouse_y <= screen_height*3/4 + 20:
+                        pygame.quit()
+                        sys.exit()
 
 def game():
     # Game logic goes here
