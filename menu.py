@@ -1,8 +1,10 @@
 import pygame
+from pygame import mixer
 import sys
 
 # Initialize Pygame
 pygame.init()
+mixer.init()
 
 # Set up the display
 screen_width = 1600
@@ -29,6 +31,9 @@ def main_menu():
     background_image = pygame.image.load('images/menu_background.png')
     background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
 
+    # Load the exit sound
+    exit_sound = mixer.Sound('sounds/exit_sound.wav')
+
     while True:
         screen.blit(background_image, (0, 0))
         draw_text("Play", font, WHITE, screen, screen_width/2, screen_height/4)
@@ -47,6 +52,10 @@ def main_menu():
                         # Start the game
                         game()
                     elif screen_width/2 - 100 <= mouse_x <= screen_width/2 + 100 and screen_height*3/4 - 20 <= mouse_y <= screen_height*3/4 + 20:
+                        exit_sound.play()
+                        # Wait for the sound to finish
+                        while mixer.get_busy():
+                            pygame.time.delay(100)
                         pygame.quit()
                         sys.exit()
 
