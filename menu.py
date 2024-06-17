@@ -27,9 +27,9 @@ def draw_text(text, font, color, surface, x, y):
 def main_menu():
     while True:
         screen.fill(BLACK)
-        draw_text("Main Menu", font, WHITE, screen, screen_width/2, screen_height/4)
-        draw_text("Start", font, WHITE, screen, screen_width/2, screen_height/2)
-        draw_text("Quit", font, WHITE, screen, screen_width/2, screen_height*3/4)
+        draw_text("Play", font, WHITE, screen, screen_width/2, screen_height/4)
+        draw_text("Options", font, WHITE, screen, screen_width/2, screen_height/2)
+        draw_text("Exit", font, WHITE, screen, screen_width/2, screen_height*3/4)
         pygame.display.update()
 
         for event in pygame.event.get():
