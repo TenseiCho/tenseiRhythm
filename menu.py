@@ -25,8 +25,12 @@ def draw_text(text, font, color, surface, x, y):
     surface.blit(text_obj, text_rect)
 
 def main_menu():
+    # Load the background image
+    background_image = pygame.image.load('images/menu_background.png')
+    background_image = pygame.transform.scale(background_image, (screen_width, screen_height))
+
     while True:
-        screen.fill(BLACK)
+        screen.blit(background_image, (0, 0))
         draw_text("Play", font, WHITE, screen, screen_width/2, screen_height/4)
         draw_text("Options", font, WHITE, screen, screen_width/2, screen_height/2)
         draw_text("Exit", font, WHITE, screen, screen_width/2, screen_height*3/4)
