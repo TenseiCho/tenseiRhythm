@@ -1,3 +1,4 @@
+import game as game_module
 import pygame
 from pygame import mixer
 import sys
@@ -48,7 +49,7 @@ def main_menu():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left mouse button
                     mouse_x, mouse_y = event.pos
-                    if screen_width/2 - 100 <= mouse_x <= screen_width/2 + 100 and screen_height/2 - 20 <= mouse_y <= screen_height/2 + 20:
+                    if screen_width/2 - 100 <= mouse_x <= screen_width/2 + 100 and screen_height/4 - 20 <= mouse_y <= screen_height/4 + 20:
                         # Start the game
                         game()
                     elif screen_width/2 - 100 <= mouse_x <= screen_width/2 + 100 and screen_height*3/4 - 20 <= mouse_y <= screen_height*3/4 + 20:
@@ -60,7 +61,7 @@ def main_menu():
                         sys.exit()
 
 def game():
-    # Game logic goes here
+    game_module.main()
     pass
 
 main_menu()
