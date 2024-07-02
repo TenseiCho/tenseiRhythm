@@ -1,4 +1,5 @@
 import game as game_module
+import options
 import pygame
 from pygame import mixer
 import sys
@@ -52,6 +53,11 @@ def main_menu():
                     if screen_width/2 - 100 <= mouse_x <= screen_width/2 + 100 and screen_height/4 - 20 <= mouse_y <= screen_height/4 + 20:
                         # Start the game
                         game()
+                    elif screen_width/2 - 100 <= mouse_x <= screen_width/2 + 100 and screen_height/2 - 20 <= mouse_y <= screen_height/2 + 20:
+                        # Go to options menu
+                        if not options.options_menu(screen, font):
+                            pygame.quit()
+                            sys.exit()
                     elif screen_width/2 - 100 <= mouse_x <= screen_width/2 + 100 and screen_height*3/4 - 20 <= mouse_y <= screen_height*3/4 + 20:
                         exit_sound.play()
                         # Wait for the sound to finish
