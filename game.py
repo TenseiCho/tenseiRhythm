@@ -1,11 +1,21 @@
 import pygame
 import math
 import json
-from pygame import mixer  # Add this import
+from pygame import mixer
+import logging
+
+# Initialize logging
+logging.basicConfig(filename='game_log.txt', level=logging.ERROR, 
+                    format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Initialize Pygame and the mixer
-pygame.init()
-mixer.init()
+try:
+    pygame.init()
+    mixer.init()
+except pygame.error as e:
+    logging.error(f"Failed to initialize Pygame or mixer: {e}")
+    print("Failed to initialize Pygame or mixer. Check game_log.txt for details.")
+    raise
 
 # Screen setup
 WIDTH, HEIGHT = 1600, 800
@@ -35,45 +45,43 @@ beatmap = []
 song_time = 0
 
 def draw_dividing_lines():
-    # Draw straight lines
-    pygame.draw.line(screen, YELLOW, (center[0] - outer_radius, center[1]), (center[0] + outer_radius, center[1]), 2)
-    pygame.draw.line(screen, YELLOW, (center[0], center[1] - outer_radius), (center[0], center[1] + outer_radius), 2)
-    
-    # Draw diagonal lines
-    for angle in [math.pi/4, 3*math.pi/4, 5*math.pi/4, 7*math.pi/4]:
-        end_x = center[0] + outer_radius * math.cos(angle)
-        end_y = center[1] + outer_radius * math.sin(angle)
-        pygame.draw.line(screen, YELLOW, center, (end_x, end_y), 2)
+    try:
+        pygame.draw.line(screen, YELLOW, (center[0] - outer_radius, center[1]), (center[0] + outer_radius, center[1]), 2)
+        pygame.draw.line(screen, YELLOW, (center[0], center[1] - outer_radius), (center[0], center[1] + outer_radius), 2)
+        
+        for angle in [math.pi/4, 3*math.pi/4, 5*math.pi/4, 7*math.pi/4]:
+            end_x = center[0] + outer_radius * math.cos(angle)
+            end_y = center[1] + outer_radius * math.sin(angle)
+            pygame.draw.line(screen, YELLOW, center, (end_x, end_y), 2)
+    except pygame.error as e:
+        logging.error(f"Failed to draw dividing lines: {e}")
 
 def draw_game():
-    screen.fill(BLACK)
-    
-    # Draw outer and inner circles to create the ring
-    pygame.draw.circle(screen, WHITE, center, outer_radius, 2)
-    pygame.draw.circle(screen, BLACK, center, inner_radius)
-    
-    # Draw dividing lines
-    draw_dividing_lines()
-    
-    # Draw keys
-    font = pygame.font.Font(None, 72)
-    for key, angle in key_positions.items():
-        # Calculate position
-        x = center[0] + math.cos(angle * math.pi) * (outer_radius + inner_radius) / 2
-        y = center[1] + math.sin(angle * math.pi) * (outer_radius + inner_radius) / 2
+    try:
+        screen.fill(BLACK)
         
-        # Draw key letter
-        text_surface = font.render(key, True, RED)
-        text_rect = text_surface.get_rect(center=(x, y))
-        screen.blit(text_surface, text_rect)
+        pygame.draw.circle(screen, WHITE, center, outer_radius, 2)
+        pygame.draw.circle(screen, BLACK, center, inner_radius)
         
-        # Draw yellow highlight if key is pressed
-        if key_pressed[key]:
-            highlight_pos = (
-                int(x + math.cos(angle * math.pi) * 20),
-                int(y + math.sin(angle * math.pi) * 20)
-            )
-            pygame.draw.circle(screen, YELLOW, highlight_pos, 10)
+        draw_dividing_lines()
+        
+        font = pygame.font.Font(None, 72)
+        for key, angle in key_positions.items():
+            x = center[0] + math.cos(angle * math.pi) * (outer_radius + inner_radius) / 2
+            y = center[1] + math.sin(angle * math.pi) * (outer_radius + inner_radius) / 2
+            
+            text_surface = font.render(key, True, RED)
+            text_rect = text_surface.get_rect(center=(x, y))
+            screen.blit(text_surface, text_rect)
+            
+            if key_pressed[key]:
+                highlight_pos = (
+                    int(x + math.cos(angle * math.pi) * 20),
+                    int(y + math.sin(angle * math.pi) * 20)
+                )
+                pygame.draw.circle(screen, YELLOW, highlight_pos, 10)
+    except pygame.error as e:
+        logging.error(f"Failed to draw game elements: {e}")
 
 def handle_key_event(event):
     if event.type == pygame.KEYDOWN:
@@ -89,60 +97,89 @@ def load_beatmap(song_name):
     global current_song, beatmap, song_time
     current_song = song_name
     beatmap_file = f"beatmaps/{song_name}.json"
-    with open(beatmap_file, 'r') as f:
-        beatmap = json.load(f)
-    song_time = 0  # Reset song time when loading a new beatmap
+    try:
+        with open(beatmap_file, 'r') as f:
+            beatmap = json.load(f)
+        song_time = 0  # Reset song time when loading a new beatmap
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        logging.error(f"Failed to load beatmap {song_name}: {e}")
+        beatmap = []
 
 def load_and_play_song(song_name):
     global current_song
     current_song = song_name
-    mixer.music.load(f"music/{song_name}.wav")
-    mixer.music.play()
+    try:
+        mixer.music.load(f"music/{song_name}.wav")
+        mixer.music.play()
+    except pygame.error as e:
+        logging.error(f"Failed to load or play song {song_name}: {e}")
+
+def initialize_game():
+    global screen
+    try:
+        screen = pygame.display.get_surface()
+        if screen is None:
+            screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        pygame.display.set_caption("WACCA-inspired Rhythm Game")
+        return pygame.time.Clock()
+    except pygame.error as e:
+        logging.error(f"Failed to initialize game screen: {e}")
+        raise
+
+def handle_events():
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            return False
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            return False
+        else:
+            handle_key_event(event)
+    return True
+
+def update_game_state():
+    global song_time
+    try:
+        song_time = pygame.mixer.music.get_pos() / 1000.0  # Convert to seconds
+    except pygame.error as e:
+        logging.error(f"Failed to get music position: {e}")
+
+def process_beatmap():
+    for note in beatmap:
+        if note['time'] <= song_time < note['time'] + 0.1:  # 100ms hit window
+            key_pressed[note['key']] = True
+        elif song_time >= note['time'] + 0.1:
+            key_pressed[note['key']] = False
+
+def game_loop(clock):
+    running = True
+    while running:
+        running = handle_events()
+        update_game_state()
+        process_beatmap()
+        draw_game()
+        try:
+            pygame.display.flip()
+            clock.tick(60)
+        except pygame.error as e:
+            logging.error(f"Failed to update display or tick clock: {e}")
+            running = False
 
 def main():
-    global screen, song_time
-    screen = pygame.display.get_surface()
-    if screen is None:
-        screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    
-    pygame.display.set_caption("WACCA-inspired Rhythm Game")
-    
-    clock = pygame.time.Clock()
-    running = True
-    
-    # Load a beatmap and play the song
-    load_beatmap("Chiwawa")
-    load_and_play_song("Chiwawa")
-
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                running = False
-            else:
-                handle_key_event(event)
+    try:
+        clock = initialize_game()
         
-        # Update song time based on actual playback position
-        song_time = pygame.mixer.music.get_pos() / 1000.0  # Convert to seconds
+        load_beatmap("Chiwawa")
+        load_and_play_song("Chiwawa")
 
-        # Check for notes to hit
-        for note in beatmap:
-            if note['time'] <= song_time < note['time'] + 0.1:  # 100ms hit window
-                # Highlight the key to press
-                key_pressed[note['key']] = True
-            elif song_time >= note['time'] + 0.1:
-                key_pressed[note['key']] = False
+        game_loop(clock)
 
-        draw_game()
-        
-        pygame.display.flip()
-        clock.tick(60)
-
-    # Stop the music when the game ends
-    mixer.music.stop()
-
-    return
+    except Exception as e:
+        logging.error(f"Unexpected error in main game loop: {e}")
+    finally:
+        try:
+            mixer.music.stop()
+        except pygame.error as e:
+            logging.error(f"Failed to stop music: {e}")
 
 if __name__ == "__main__":
     main()
